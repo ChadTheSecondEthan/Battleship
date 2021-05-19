@@ -11,10 +11,11 @@ bool playerOneTurn;
 bool playing;
 bool randomShipsPlayerOne;
 
+#include "timedelay.h"
 #include "field.h"
 #include "ship.h"
 
-#define isLegalAnswer(fieldType, ans) (ans >= 0 && ans <= 99 && (!(field[fieldType][ans % 10][ans / 10] == attacked || field[fieldType][ans % 10][ans / 10] == attackedWithShip)))
+#define isLegalAnswer(fieldType, ans) (ans >= 0 && ans <= 99 && !(field[fieldType][ans % 10][ans / 10] == attacked || field[fieldType][ans % 10][ans / 10] == attackedWithShip))
 
 char* nameOne;
 char* nameTwo;
@@ -22,20 +23,19 @@ const char* instructions[] = {
     "\nThis is a game of Battleship. You begin the game by placing\n",
     "your ships down on your board. During each turn, pick a\n",
     "number on the board corresponding to the spot you would like\n",
-    "to attack. If your attack all of your opponents ships, you win.\n",
-    "Your board is a ten by ten grid, with 0's, corresponding to empty\n",
-    "space, 1's, corresponding to ships on the board, 2's, corresponding\n",
-    "to spaces not containing ships that have been hit, and 3's, \n",
-    "corresponding to areas hit that previous contained ships.\n"
+    "to attack. If you attack all of your opponents ships, you win.\n",
+    "Your board is a ten by ten grid.\n",
+    "*: unarmed ship, \n",
+    "0: attacked space, \nX: attacked space with ship\n",
 };
 
 void init();
 void randomizeShips();
 void update();
-bool checkWin(bool playerOnes);
-void gameOver(bool playerOnes);
+bool checkWin();
+void gameOver();
 
-int main(void)
+int main()
 {
     playerOneTurn = true;
     playing = true;
@@ -47,14 +47,15 @@ int main(void)
     init();
 
     printf("Here is your field.\n");
-    drawField(playerOne);
+    drawField(playerOne, true);
     printf("\nHere is the enemy's field.\n\n");
-    drawField(visiblePlayerTwo);
+    drawField(playerTwo, false);
 
     while(playing)
     {
-        update(playerOneTurn);
-        drawField(!playerOneTurn ? playerTwo : playerOne);
+        update();
+        drawField(playerOneTurn ? playerOne : playerTwo, playerOneTurn);
+        timedelay(3000);
     }
 
     return 0;
@@ -129,17 +130,15 @@ void update()
             printf("Your ship has been hit!\n");
 
         field[fieldType][answerX][answerY] = attackedWithShip;
-        field[fieldType + 2][answerX][answerY] = attackedWithShip;
     }
     else
-    { 
+    {
         if (playerOneTurn)
             printf("You have not hit a ship this turn.\n");
         else
             printf("The opponent did not hit any of your ships this turn.\n");
 
         field[fieldType][answerX][answerY] = attacked;
-        field[fieldType + 2][answerX][answerY] = attacked;
     }
 
     if (checkWin(playerOneTurn))
@@ -148,26 +147,26 @@ void update()
     playerOneTurn = !playerOneTurn;
 }
 
-bool checkWin(bool playerOnes)
+bool checkWin()
 {
-    int board = (playerOnes) ? playerOne : playerTwo;
+    int fieldType = playerOneTurn ? playerOne : playerTwo;
 
     for (int i = 0; i < 10; i++)
         for (int j = 0; j < 10; j++)
-            if (field[board][j][i] == ship)
+            if (field[fieldType][j][i] == ship)
                 return false;
     return true;
 }
 
-void gameOver(bool playerOnes)
+void gameOver()
 {
     playing = false;
 
-    if (playerOnes)
+    if (playerOneTurn)
         printf("Congradulations, %s! You have won BattleShip!\n", nameOne);
     else
         printf("%s, you have lost. Better luck next time!\n", nameOne);
 
     printf("Here is the enemy's board.\n");
-    drawField(playerTwo);
+    drawField(playerTwo, true);
 }

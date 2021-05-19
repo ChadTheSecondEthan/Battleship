@@ -1,4 +1,3 @@
-
 const int shipSizes[5] = { 2, 3, 3, 4, 5 };
 
 void makeVerticalShip(int, int, bool);
